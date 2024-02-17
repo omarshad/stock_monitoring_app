@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Monitoring</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f9f9f9; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #4CAF50; color: white; }
+        tr:hover { background-color: #f5f5f5; }
+        .buy { background-color: #4CAF50; color: white; }
+        .sell { background-color: #f44336; color: white; }
+        .hold { background-color: #ffeb3b; color: black; }
+        .navbar { overflow: hidden; background-color: #333; }
+        .navbar a { float: left; display: block; color: white; text-align: center; padding: 14px 20px; text-decoration: none; }
+        .navbar a:hover { background-color: #ddd; color: black; }
+        input[type=text], input[type=date] { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
+        input[type=submit] { background-color: #4CAF50; color: white; padding: 14px 20px; margin: 8px 0; border: none; cursor: pointer; }
+        input[type=submit]:hover { background-color: #45a049; }
+    </style>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/">Home</a>
+        <a href="/monitor">Monitor Stocks</a>
+    </div>
+    <h1>Stock Monitoring</h1>
+    <form method="post">
+        <label for="stock">Stock Ticker:</label>
+        <input type="text" id="stock" name="stock" placeholder="AAPL, MSFT, GOOGL" required>
+        <br>
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
+        <br>
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+    <table>
+        <tr>
+            <th>Symbol</th>
+            <th>Latest Price</th>
+            <th>MA50</th>
+            <th>MA200</th>
+            <th>RSI</th>
+            <th>Signal</th>
+            <th>MACD</th>
+            <th>Bollinger Bands High</th>
+            <th>Bollinger Bands Low</th>
+        </tr>
+        {% for stock in stock_data %}
+        <tr>
+            <td>{{ stock.symbol }}</td>
+            <td>{{ stock.latest_price }}</td>
+            <td>{{ stock.MA50 }}</td>
+            <td>{{ stock.MA200 }}</td>
+            <td>{{ stock.RSI }}</td>
+            <td class="{{ stock.Signal|lower }}">{{ stock.Signal }}</td>
+            <td>{{ stock.MACD }}</td>
+            <td>{{ stock.Bollinger_High }}</td>
+            <td>{{ stock.Bollinger_Low }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% for stock in stock_data %}
+    <div id="graph-{{ stock.symbol }}" style="width:100%;max-width:700px;height:500px;"></div>
+    <script>
+        var trace1 = {
+            x: {{ stock.dates|tojson }},
+            y: {{ stock.prices|tojson }},
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: '{{ stock.symbol }}',
+            line: { shape: 'spline', smoothing: 1.3 },
+            marker: { size: 8 }
+        };
+
+        var data = [trace1];
+
+        var layout = {
+            title: '{{ stock.symbol }} Stock Price',
+            xaxis: { title: 'Date' },
+            yaxis: { title: 'Price' },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            autosize: true
+        };
+
+        Plotly.newPlot('graph-' + '{{ stock.symbol }}', data, layout);
+    </script>
+    {% endfor %}
+</body>
+</html>
