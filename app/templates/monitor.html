@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Stock Monitoring</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f9f9f9; }
         h1 { color: #333; }
@@ -19,7 +21,6 @@
         input[type=submit] { background-color: #4CAF50; color: white; padding: 14px 20px; margin: 8px 0; border: none; cursor: pointer; }
         input[type=submit]:hover { background-color: #45a049; }
     </style>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <div class="navbar">
@@ -39,35 +40,39 @@
         <br>
         <input type="submit" value="Submit">
     </form>
-    <table>
-        <tr>
-            <th>Symbol</th>
-            <th>Latest Price</th>
-            <th>MA50</th>
-            <th>MA200</th>
-            <th>RSI</th>
-            <th>Signal</th>
-            <th>MACD</th>
-            <th>Bollinger Bands High</th>
-            <th>Bollinger Bands Low</th>
-        </tr>
-        {% for stock in stock_data %}
-        <tr>
-            <td>{{ stock.symbol }}</td>
-            <td>{{ stock.latest_price }}</td>
-            <td>{{ stock.MA50 }}</td>
-            <td>{{ stock.MA200 }}</td>
-            <td>{{ stock.RSI }}</td>
-            <td class="{{ stock.Signal|lower }}">{{ stock.Signal }}</td>
-            <td>{{ stock.MACD }}</td>
-            <td>{{ stock.Bollinger_High }}</td>
-            <td>{{ stock.Bollinger_Low }}</td>
-        </tr>
-        {% endfor %}
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th>Symbol</th>
+                <th>Latest Price</th>
+                <th>MA50</th>
+                <th>MA200</th>
+                <th>RSI</th>
+                <th>Signal</th>
+                <th>MACD</th>
+                <th>Bollinger Bands High</th>
+                <th>Bollinger Bands Low</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stock_data %}
+            <tr class="{{ stock.latest_data.Signal|lower }}">
+                <td>{{ stock.symbol }}</td>
+                <td>{{ stock.latest_data.c }}</td>
+                <td>{{ stock.latest_data.MA50 }}</td>
+                <td>{{ stock.latest_data.MA200 }}</td>
+                <td>{{ stock.latest_data.RSI }}</td>
+                <td>{{ stock.latest_data.Signal }}</td>
+                <td>{{ stock.latest_data.MACD }}</td>
+                <td>{{ stock.latest_data.Bollinger_High }}</td>
+                <td>{{ stock.latest_data.Bollinger_Low }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-
+    <!-- Plotly graphs -->
     {% for stock in stock_data %}
-    <div id="graph-{{ stock.symbol }}" style="width:100%;max-width:700px;height:500px;"></div>
+    <div id="graph-{{ stock.symbol }}" style="width:100%; height:500px;"></div>
     <script>
         var trace1 = {
             x: {{ stock.dates|tojson }},
@@ -75,22 +80,9 @@
             type: 'scatter',
             mode: 'lines+markers',
             name: '{{ stock.symbol }}',
-            line: { shape: 'spline', smoothing: 1.3 },
-            marker: { size: 8 }
         };
-
-        var data = [trace1];
-
-        var layout = {
-            title: '{{ stock.symbol }} Stock Price',
-            xaxis: { title: 'Date' },
-            yaxis: { title: 'Price' },
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            autosize: true
-        };
-
-        Plotly.newPlot('graph-' + '{{ stock.symbol }}', data, layout);
+        var layout = { title: '{{ stock.symbol }} Stock Price', xaxis: { title: 'Date' }, yaxis: { title: 'Price' } };
+        Plotly.newPlot('graph-' + '{{ stock.symbol }}', [trace1], layout);
     </script>
     {% endfor %}
 </body>
